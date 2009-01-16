@@ -1,0 +1,365 @@
+.TH ejabberdctl 8 "08 June 2008" "Version 2.0.1" "ejabberdctl manual page"
+
+.SH NAME
+ejabberdctl \(em a control interface of ejabberd Jabber/XMPP server
+
+.SH SYNOPSIS
+.PP 
+\fBejabberdctl\fR \fI[\-\-node node] [vhost server] command [options]\fP
+
+.SH DESCRIPTION
+.PP 
+\fBejabberdctl\fR  is a front end to the ejabberd Jabber/XMPP server.
+It is designed to help the administrator control the functioning of the
+running \fBejabberd\fR daemon.
+
+.SH OPTIONS
+.TP
+.BI \-\-node " node"
+Specifies remote Erlang node to connect to. Default value is
+\fIejabberd\fP.
+If the node name does not contain symbol \fI@\fP
+then actual node name becomes \fInode@host\fP where \fIhost\fP is short
+hostname (usually it coincides with \fI\(gahostname \-s\(ga\fP). If the node name
+contain symbol \fI@\fR and its hostname part is a FQDN then \fBejabberd\fR
+will use so-called long names (see \fBerl\fR(1) manual page and look for
+options \fI\-name\fP and \fI\-sname\fP for details).
+
+Examples of \fI\-\-node\fP option:
+
+.BI ejabberd
+Connect to locally run ejabberd server at node \fIejabberd@\(gahostname \-s\(ga\fP.
+
+.BI ejabberd@otherhost
+Connect to remotely run ejabberd server at node \fIejabberd@otherhost\fP.
+
+.BI ejabberd@localhost
+Connect to locally run ejabberd server at node \fIejabberd@localhost\fP.
+
+ejabberdctl honors ERLANG_NODE environment variable from /etc/default/ejabberd,
+see below.
+
+.TP
+.BI vhost " server"
+Specifies that \fIcommand\fP should be executed for virtual host \fIserver\fP.
+There are only few commands that require \fIvhost\fP argument.
+
+.PP
+If there are no \fIvhost server\fP options then the \fIcommand\fP can be any
+of the following:
+.TP
+.BI debug
+Attaches an interactive Erlang shell to a running ejabberd server. To detach it
+press Ctrl+G, q, <Return>.
+.TP
+.BI status
+Requests status of the Erlang virtual machine where ejabberd server is running.
+.TP
+.BI stop
+Stops the ejabberd server and Erlang virtual machine.
+.TP
+.BI restart
+Restarts the ejabberd server inside Erlang virtual machine. Note that if you want
+to change VM options (enable/disable kernel poll or SMP, increase number of ports
+or database tables) you have to stop ejabberd completely and then start it again.
+.TP
+.BI reopen\-log
+Force the ejabberd server to reopen its log
+file (\fI/var/log/ejabberd/ejabberd.log\fP by default).
+.TP
+.BI reopen\-weblog
+If module mod_http_fileserver is loaded then force the ejabberd server to reopen
+its weblog file.
+.TP
+.BI register " user server password"
+Register user \fIuser\fP with password \fIpassword\fP at ejabberd virtual
+host \fIserver\fP.
+.TP
+.BI unregister " user server"
+Unregister user \fIuser\fP at ejabberd virtual host \fIserver\fP.
+.TP
+.BI backup " filepath"
+Backup user database of the ejabberd server to file \fIfilepath\fP.
+.TP
+.BI restore " filepath"
+Restore user database of the ejabberd server from backup file \fIfilepath\fP.
+.TP
+.BI install\-fallback " filepath"
+Install a backup to \fIfilepath\fP as fallback. The fallback will be
+used to restore the database at the next start-up.
+.TP
+.BI dump " filepath"
+Dump user database of the ejabberd server to text file \fIfilepath\fP.
+.TP
+.BI load " filepath"
+Restore user database of the ejabberd server from text file \fIfilepath\fP.
+.TP
+.BI import\-file " filepath"
+Import user data from jabberd 1.4 spool file \fIfilepath\fP. For example, if
+\fIfilepath\fP is \fI.../example.org/user.xml\fP then imported username will be
+\fIuser\fP and it will be imported to virtual server \fIexample.org\fP.
+.TP
+.BI import\-dir " directorypath"
+Import user data from jabberd 1.4 spool directory \fIdirectorypath\fP. Directory
+name should be the name of virtual server to import users.
+.TP
+.BI delete\-expired\-messages
+Delete expired offline messages from ejabberd database.
+.TP
+.BI delete\-old\-messages " n"
+Delete offline messages older than \fIn\fP days from ejabberd database.
+.TP
+.BI mnesia info
+Show some information about the Mnesia system (see \fBmnesia\fP(3), function
+\fIinfo\fP).
+.TP
+.BI mnesia
+Show all information about the Mnesia system, such as transaction statistics,
+db_nodes, and configuration parameters (see \fBmnesia\fP(3), function
+system_info).
+.TP
+.BI mnesia " key"
+Show information about the Mnesia system according to \fIkey\fP specified
+(see \fBmnesia\fP(3), function system_info for valid \fIkey\fP values).
+.TP
+.BI incoming\-s2s\-number
+Print number of incoming server-to-server connections to the node.
+.TP
+.BI outgoing\-s2s\-number
+Print number of outgoing server-to-server connections from the node.
+.TP
+.BI user\-resources " user server"
+List all connected resources of user \fIuser@server\fP.
+.TP
+.BI connected\-users\-number
+Report number of established users' sessions.
+.TP
+.BI connected\-users
+List all established users' sessions.
+
+.PP
+If there are \fIvhost server\fP options then the \fIcommand\fP can be
+the following:
+.TP
+.BI registered\-users
+List all registered at the ejabberd server users (at virtual host \fIserver\fP).
+
+.SH EXTRA OPTIONS
+.PP
+An optional module \fBmod_ctlextra\fP adds a number of other commands.
+.PP
+To enable the additional commands add it to \fB{modules}\fP
+section of ejabberd config file and make it looking as the following:
+.sp
+.nf
+{modules,
+ [
+  ...
+  {mod_ctlextra, []},
+  ...
+ ]}.
+.fi
+.PP
+The new options are:
+
+.TP
+.BI compile " file"
+Compile Erlang source file \fIfile\fP.
+.TP
+.BI load\-config " file"
+Load config from \fIfile\fP. Note that loading config to a database doesn't mean
+reloading server. For example it's impossible to add/remove virtual hosts
+without server restart.
+.TP
+.BI remove\-node " nodename"
+Remove an ejabberd node \fInodename\fP from the Mnesia database cluster.
+.TP
+.BI delete\-older\-users " days"
+Delete users that have not logged in the last \fIdays\fP.
+.TP
+.BI set\-password " user server password"
+Set password for user \fIuser@server\fP to \fIpassword\fP.
+.TP
+.BI export2odbc " server outputdir"
+Export Mnesia tables on \fIserver\fP to files in \fIoutputdir\fP directory
+for subsequent import to a relational database system.
+.TP
+.BI delete\-older\-messages " days"
+Delete offline messages older than \fIdays\fP.
+.TP
+.BI srg\-create " group host name description display"
+Create shared roster group \fIgroup\fP at server \fIhost\fP with displayed name
+\fIname\fP, description \fIdescription\fP and displayed groups \fIdisplay\fP.
+.TP
+.BI srg\-delete " group host"
+Delete shared roster group \fIgroup\fP from server \fIhost\fP.
+.TP
+.BI srg\-user\-add " user server group host"
+Add user \fIuser@server\fP to group \fIgroup\fP at server \fIhost\fP.
+.TP
+.BI srg\-user\-del " user server group host"
+Delete user \fIuser@server\fP from group \fIgroup\fP at server \fIhost\fP.
+.TP
+.BI srg\-list\-groups " host"
+List the shared roster groups at server \fIhost\fP.
+.TP
+.BI srg\-get\-info " group host"
+Get info on the group \fIgroup\fP at server \fIhost\fP.
+.TP
+.BI vcard\-get " user host data [data2]"
+Get data from the vCard of \fIuser@host\fP. \fIdata\fP (and optional \fIdata2\fP)
+is a vCard node. For example \fIdata\fP may be \fBFN\fP or \fBNICKNAME\fP.
+For retrieving email address use \fBEMAIL USERID\fP. Other options can be obtained
+from XEP-0054 (http://www.xmpp.org/extensions/xep\-0054.html).
+.TP
+.BI vcard\-set " user host data [data2] content"
+Set data to content for \fIuser@host\fP vCard. \fIdata\fP (and optional \fIdata2\fP)
+has the same meaning as for \fBvcard\-get\fP command.
+\" .TP
+\" .BI muc\-purge " days"
+\" Destroy MUC rooms with zero activity (no messages in history) in the last
+\" \fIdays\fP days.
+\" .TP
+\" .BI muc\-online\-rooms
+\" Print the list of existing MUC rooms.
+.TP
+.BI add\-rosteritem " user1 server1 user2 server2 nick group subs"
+Add \fIuser2@server2\fP to \fIuser1@server1\fP's roster.
+Option \fIsubs\fP must be one of the \fInone\fP, \fIfrom\fP, or \fIboth\fP.
+.TP
+.BI rem\-rosteritem " user1 server1 user2 server2"
+Remove \fIuser2@server2\fP from \fIuser1@server1\fP's roster. 
+.TP
+.BI rosteritem\-purge " [options]"
+Purge all roster items that match filtering options.
+.TP
+.BI pushroster " file user server"
+Push template roster in file \fIfile\fP to \fIuser@server\fP. The file contents
+must use the following format:
+.sp
+.nf
+[{"bob", "example.org", "Bob's group", "Bob's nickname"},
+ {"mart", "example.org", "workers", "Mart"},
+ {"Rich", "example.org", "bosses", "Rich"}].
+.fi
+.TP
+.BI pushroster\-all " file"
+Push template roster in file to all users listed in the file \fIfile\fP itself.
+The file contents must be in the same format as for \fBpushroster\fP command.
+.TP
+.BI push\-alltoall " server group"
+Adds all the users at server \fIserver\fP to each other's roster using group \fIgroup\fP.
+.TP
+.BI status\-list " status"
+Print the list of currently logged users with status \fIstatus\fP. Status can be either
+\fBall\fP or one of the following: \fBavailable\fP, \fBchat\fP, \fBaway\fP, \fBxa\fP,
+\fBdnd\fP.
+.TP
+.BI status\-num " status"
+Print the number of currently logged users with status \fIstatus\fP. Status can be either
+\fBall\fP or one of the following: \fBavailable\fP, \fBchat\fP, \fBaway\fP, \fBxa\fP,
+\fBdnd\fP.
+.TP
+.BI "stats registeredusers"
+Print the number of currently registered users.
+.TP
+.BI "stats onlineusers"
+Print the number of currently logged users.
+.TP
+.BI "stats onlineusersnode"
+Print the number of currently logged users in the ejabberd node.
+.TP
+.BI "stats uptime\-seconds"
+Print the uptime of ejabberd node in seconds.
+.TP
+.BI get\-cookie
+Get the Erlang cookie of this node.
+.TP
+.BI killsession " user server resource"
+Kill user \fIuser@server/resource\fP session.
+
+.PP
+If there are \fIvhost server\fP options then the \fIcommand\fP can be
+one of the following:
+.TP
+.BI num\-active\-users " days"
+Print number of users active in the last \fIdays\fP days (at virtual host \fIserver\fP).
+.TP
+.BI status\-list " status"
+Print the list of currently logged to virtual host \fIserver\fP users with
+status \fIstatus\fP. Status can be either
+\fBall\fP or one of the following: \fBavailable\fP, \fBchat\fP, \fBaway\fP, \fBxa\fP,
+\fBdnd\fP.
+.TP
+.BI status\-num " status"
+Print the number of currently logged to virtual host \fIserver\fP users with
+status \fIstatus\fP. Status can be either
+\fBall\fP or one of the following: \fBavailable\fP, \fBchat\fP, \fBaway\fP, \fBxa\fP,
+\fBdnd\fP.
+.TP
+.BI "stats registeredusers"
+Print number of registered users (at virtual host \fIserver\fP).
+.TP
+.BI "stats onlineusers"
+Print number of logged users (at virtual host \fIserver\fP).
+.TP
+.BI ban\-account " username [reason]"
+Ban account: kick sessions and change password (at virtual host \fIserver\fP).
+
+.SH
+.PP
+ejabberdctl starts distributed Erlang node \fIejabberddebug\fP (if run with
+\fBdebug\fP option) or \fIejabberdctl\fP (if run with any other options).
+If the ejabberd server's node name to connect to includes FDQN as a hostname
+Erlang option \fI\-name\fP is used. Otherwise ejabberdctl uses short names
+(\fI\-sname\fP option).
+
+.PP
+Note that ejabberdctl does not append hostname to its own node name leaving
+this to Erlang emulator. It usually follows \fI\(gahostname \-f\(ga\fP to
+find a hostname if long names are used or \fI\(gahostname \-s\(ga\fP in case
+of short names, but may fail in case of unusual networking settings. A known
+case of failure is using long names when \fI\(gahostname \-f\(ga\fP doesn't
+return FDQN. If ejabberdctl cannot create Erlang node then it cannot control
+ejabberd server.
+
+.SH OPTIONS FILE
+.PP 
+The file \fB/etc/default/ejabberd\fR contains specific options. One of them
+is used by \fBejabberdctl\fP.
+
+.PD 0
+.I ERLANG_NODE
+Use specified string as Erlang node of \fBejabberd\fP server to connect. It
+overrides default \fBejabberd\fP node name. The string may take one of the
+following forms: \fBnodename\fP, \fBnodename@hostname\fP or
+\fBnodename@hostname.domainname\fP.
+
+.SH FILES
+.PD 0
+.I /etc/default/ejabberd
+default variables
+
+.SH SEE ALSO 
+.PP 
+\fBerl\fR(1), \fBejabberd\fR(8), \fBmnesia\fR(3).
+
+.PP 
+The program documentation is available at
+\fIhttp://www.process\-one.net/en/projects/ejabberd/\fP. 
+A copy of the documentation can be found at
+/usr/share/doc/ejabberd/guide.html.
+ 
+.SH AUTHORS
+.PP 
+This manual page was adapted by Sergei Golovan <sgolovan@nes.ru> for 
+the \fBDebian\fP system (but may be used by others) from the
+\fBejabberd\fP documentation written by Alexey Shchepin <alexey@sevcom.net>.
+
+Permission is granted to copy, distribute and/or modify this document under 
+the terms of the GNU General Public License, Version 2 any  
+later version published by the Free Software Foundation. 
+.PP 
+On Debian systems, the complete text of the GNU General Public 
+License can be found in /usr/share/common\-licenses/GPL. 
+

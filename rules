@@ -1,0 +1,35 @@
+#!/usr/bin/make -f
+
+#DEB_AUTO_UPDATE_DEBIAN_CONTROL := true
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+
+export HOME := $(CURDIR)/debian
+DEB_BUILDDIR := $(shell pwd)/src
+DEB_CONFIGURE_SCRIPT := $(DEB_BUILDDIR)/configure
+DEB_CONFIGURE_EXTRA_FLAGS := --enable-odbc --enable-pam
+
+DEB_INSTALL_DOCS_ALL :=
+
+EJABBERDIR := /usr/lib/ejabberd
+DEB_MAKE_INSTALL_TARGET := install DESTDIR=$(DEB_DESTDIR) \
+	EJABBERDDIR=$(DEB_DESTDIR)$(EJABBERDIR)           \
+	ETCDIR=$(DEB_DESTDIR)/etc/ejabberd                \
+	LOGDIR=$(DEB_DESTDIR)/var/log/ejabberd
+
+CFLAGS := -I `ls -d /usr/lib/erlang/erts-*`/include/
+
+# declares a minimal versioned erlang Depends:
+install/ejabberd-snapshot::
+	$(RM) $(DEB_DESTDIR)/etc/ejabberd/ejabberd.cfg
+	$(RM) $(DEB_DESTDIR)/etc/ejabberd/ejabberdctl.cfg
+	install -d $(DEB_DESTDIR)$(EJABBERDIR)/include
+	install -m 644 src/*.hrl $(DEB_DESTDIR)$(EJABBERDIR)/include
+	for f in src/*/*.hrl ; do \
+	    install -D -m 644 $$f $(DEB_DESTDIR)$(EJABBERDIR)/include/$$(basename $$(dirname $$f))/$$(basename $$f) ; \
+	done
+	rm -f $(DEB_DESTDIR)$(EJABBERDIR)/include/eldap/ELDAPv3.hrl
+	rm -f $(DEB_DESTDIR)$(EJABBERDIR)/include/XmppAddr.hrl
+	erlang-depends
+

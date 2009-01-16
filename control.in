@@ -1,0 +1,28 @@
+Source: ejabberd-snapshot
+Section: net
+Priority: optional
+Maintainer: Jack Moffitt <jack@metajack.im>
+Build-Depends: @cdbs@, erlang-nox, erlang-dev (>= 1:11.b.2), libexpat1-dev, libssl-dev, zlib1g-dev, libpam0g-dev
+Standards-Version: 3.8.0
+Homepage: http://www.process-one.net/en/projects/ejabberd/ 
+
+Package: ejabberd-snapshot
+Architecture: any
+Depends: adduser, ${erlang-nox:Depends}, ${erlang-abi:Depends}, openssl, ucf, ${misc:Depends}, ${shlibs:Depends}
+Suggests: libunix-syslog-perl
+Description: Distributed, fault-tolerant Jabber/XMPP server written in Erlang
+ ejabberd is a distributed, fault-tolerant Jabber/XMPP server written in Erlang
+ Features:
+  - XMPP-compliant
+  - Web based administration
+  - Load balancing: can run in a cluster of machines
+  - Fault-tolerance: database can be replicated and stored on multiple
+    nodes (nodes can be added or replaced 'on the fly')
+  - Virtual hosting: several virtual domains can be served using single ejabberd
+    instance
+  - SSL/TLS support
+  - Multi-User Chat (MUC/conference)
+  - IRC transport
+  - Jabber Users Directory, based on users vCards
+  - Service Discovery
+  - Shared roster
