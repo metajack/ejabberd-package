@@ -1,3 +1,9 @@
+ejabberd-snapshot (2.1.0+r1931-0ubuntu1) intrepid; urgency=low
+
+  * Updated to latest SVN trunk at r1931.
+
+ -- Jack Moffitt <jack@metajack.im>  Sun, 01 Mar 2009 10:05:13 -0700
+
 ejabberd-snapshot (2.1.0+r1821-0ubuntu1) intrepid; urgency=low
 
   * Updated to latest SVN trunk at r1821.
